@@ -196,6 +196,7 @@ public class MainActivity extends Activity {
             }
             if (sourcePaths.isEmpty()) throw new IllegalStateException("Tidak ada file HTML");
             updateQueueLabel();
+            loadPreview(new File(sourcePaths.get(0)));
         } catch (Exception e) { toast("Gagal import HTML: " + e.getMessage()); }
     }
 

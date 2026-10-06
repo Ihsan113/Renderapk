@@ -6,25 +6,37 @@
     android:background="#000000">
 
     <WebView
-        android:id="@+id/renderWebView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:id="@+id/renderPreviewWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#05070D"
+        android:overScrollMode="never" />
+
+    <VideoView
+        android:id="@+id/resultVideoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#000000" />
 
     <LinearLayout
+        android:id="@+id/statusPanel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_margin="10dp"
-        android:background="#CC11151B"
+        android:layout_margin="14dp"
+        android:background="#DD11151B"
+        android:elevation="8dp"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="12dp">
         <TextView
             android:id="@+id/renderStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Menyiapkan GPU VirtualDisplay renderer..."
+            android:text="Menyiapkan renderer..."
             android:textColor="#FFFFFF"
-            android:textSize="12sp" />
+            android:textSize="13sp"
+            android:textStyle="bold" />
         <TextView
             android:id="@+id/renderQueueStatus"
             android:layout_width="wrap_content"
@@ -32,22 +44,38 @@
             android:layout_marginTop="4dp"
             android:text="Queue"
             android:textColor="#BFD8DC"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
         <Button
             android:id="@+id/backgroundButton"
             android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:layout_marginTop="6dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="7dp"
             android:text="Jalankan di background"
             android:textAllCaps="false"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
         <Button
             android:id="@+id/cancelButton"
             android:layout_width="wrap_content"
-            android:layout_height="38dp"
+            android:layout_height="40dp"
             android:layout_marginTop="4dp"
             android:text="Batalkan"
             android:textAllCaps="false"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/resultHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="22dp"
+        android:background="#CC11151B"
+        android:paddingLeft="14dp"
+        android:paddingTop="8dp"
+        android:paddingRight="14dp"
+        android:paddingBottom="8dp"
+        android:text="Preview hasil render"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:visibility="gone" />
 </FrameLayout>

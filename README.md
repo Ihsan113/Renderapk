@@ -51,3 +51,10 @@ The workflow uploads `app-debug.apk` as the `HTMLRenderStudio-debug` artifact.
 - SurfaceTexture frame callbacks use the main looper and the renderer waits for the first producer frame.
 - EGL uses `EGL_RECORDABLE_ANDROID` for MediaCodec input surfaces.
 - Added bundled `business_growth_gpu_test.html` as the default GPU render test scene.
+
+
+## MVP 0.2.5 render reliability
+
+The MVP uses a hardware-accelerated WebView hosted on a Presentation/VirtualDisplay, captures each frame to a Bitmap on the Android main thread, then uploads that Bitmap to an OpenGL ES texture and draws directly into the MediaCodec encoder input Surface. This is intentionally the compatibility/reliability path for Android/WebView vendor differences. The direct `SurfaceTexture` OES path remains in `GlVideoRenderer` for a future zero-copy mode.
+
+The render screen now has a real live WebView preview and automatically switches to a `VideoView` preview of the actual MP4 after the final queue item is successfully written to MediaStore. The renderer also rejects an empty/too-small MP4 instead of reporting success.
