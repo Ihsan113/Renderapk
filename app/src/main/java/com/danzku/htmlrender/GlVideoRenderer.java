@@ -35,6 +35,8 @@ public final class GlVideoRenderer {
     private static final String EXTERNAL_VS =
             "attribute vec2 aPos; attribute vec2 aTex; varying vec2 vTex; uniform mat4 uTexMatrix;" +
             "void main(){gl_Position=vec4(aPos,0.0,1.0);vTex=(uTexMatrix*vec4(aTex,0.0,1.0)).xy;}";
+    private static final int EGL_RECORDABLE_ANDROID = 0x3142;
+
     private static final String EXTERNAL_FS =
             "#extension GL_OES_EGL_image_external : require\n" +
             "precision mediump float; varying vec2 vTex; uniform samplerExternalOES uTex;" +
@@ -84,6 +86,7 @@ public final class GlVideoRenderer {
                 EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8, EGL14.EGL_ALPHA_SIZE, 8,
                 EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
                 EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
+                EGL_RECORDABLE_ANDROID, 1,
                 EGL14.EGL_NONE
         };
         if (!EGL14.eglChooseConfig(display, attrib, 0, configArr, 0, 1, configs, 0) || configs[0] == 0) {
@@ -175,6 +178,8 @@ public final class GlVideoRenderer {
         float[] matrix = new float[16];
         source.getTransformMatrix(matrix);
         GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight);
+        GLES20.glClearColor(0f, 0f, 0f, 1f);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glUseProgram(externalProgram);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, externalTexture);

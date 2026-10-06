@@ -6,6 +6,9 @@ import android.hardware.display.VirtualDisplay;
 import android.graphics.SurfaceTexture;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.graphics.Color;
 import android.app.Presentation;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -53,7 +56,7 @@ public final class OffscreenWebViewSource {
                 frameAvailable = true;
                 frameLock.notifyAll();
             }
-        });
+        }, mainHandler);
     }
 
     public void start(File htmlFile) throws Exception {
@@ -66,14 +69,23 @@ public final class OffscreenWebViewSource {
                 virtualDisplay = dm.createVirtualDisplay(
                         "HTMLRenderStudio-" + System.currentTimeMillis(),
                         width, height, 160, surface,
-                        DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
+                        DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION
+                                | DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
                 if (virtualDisplay == null) throw new IllegalStateException("VirtualDisplay unavailable");
 
                 presentation = new Presentation(context, virtualDisplay.getDisplay());
-                presentation.getWindow().setGravity(Gravity.TOP | Gravity.START);
-                presentation.getWindow().setFlags(
-                        android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                        android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                Window window = presentation.getWindow();
+                if (window == null) throw new IllegalStateException("Presentation window unavailable");
+                window.addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+                window.setGravity(Gravity.TOP | Gravity.START);
+                window.setFlags(
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                WindowManager.LayoutParams lp = window.getAttributes();
+                lp.width = width;
+                lp.height = height;
+                lp.gravity = Gravity.TOP | Gravity.START;
+                window.setAttributes(lp);
                 presentation.getWindow().getDecorView().setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                         View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
@@ -81,7 +93,11 @@ public final class OffscreenWebViewSource {
                 FrameLayout root = new FrameLayout(context);
                 root.setLayoutParams(new FrameLayout.LayoutParams(width, height));
                 webView = new WebView(context);
-                webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                webView.setBackgroundColor(Color.BLACK);
+                webView.setLayerType(View.LAYER_TYPE_NONE, null);
+                if (android.os.Build.VERSION.SDK_INT >= 26) {
+                    webView.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
+                }
                 WebSettings s = webView.getSettings();
                 s.setJavaScriptEnabled(true);
                 s.setDomStorageEnabled(true);
@@ -103,11 +119,19 @@ public final class OffscreenWebViewSource {
                 root.addView(webView);
                 presentation.setContentView(root);
                 presentation.show();
-                presentation.getWindow().setLayout(width, height);
+                window.setLayout(width, height);
                 started.countDown();
 
                 String baseUrl = android.net.Uri.fromFile(htmlFile.getParentFile()).toString() + "/";
                 webView.loadDataWithBaseURL(baseUrl, readHtml(htmlFile), "text/html", "UTF-8", baseUrl);
+                webView.post(() -> {
+                    webView.measure(
+                            android.view.View.MeasureSpec.makeMeasureSpec(width, android.view.View.MeasureSpec.EXACTLY),
+                            android.view.View.MeasureSpec.makeMeasureSpec(height, android.view.View.MeasureSpec.EXACTLY));
+                    webView.layout(0, 0, width, height);
+                    webView.requestLayout();
+                    webView.invalidate();
+                });
             } catch (Throwable t) {
                 failure[0] = t;
                 started.countDown();
@@ -119,10 +143,8 @@ public final class OffscreenWebViewSource {
 
         // Give Chromium a compositor turn so the first frame reaches SurfaceTexture.
         android.os.SystemClock.sleep(250);
-        synchronized (frameLock) {
-            if (!frameAvailable) {
-                frameLock.wait(1_000);
-            }
+        if (!waitForFrame(2_000)) {
+            throw new IllegalStateException("WebView tidak menghasilkan frame pada VirtualDisplay");
         }
     }
 
@@ -138,10 +160,17 @@ public final class OffscreenWebViewSource {
 
     private String escape(String x) { return x.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"); }
 
-    public void waitForNextFrame(long timeoutMs) throws InterruptedException {
+    public boolean waitForFrame(long timeoutMs) throws InterruptedException {
+        long deadline = android.os.SystemClock.uptimeMillis() + Math.max(1, timeoutMs);
         synchronized (frameLock) {
-            if (!frameAvailable) frameLock.wait(Math.max(1, timeoutMs));
+            while (!frameAvailable) {
+                long remaining = deadline - android.os.SystemClock.uptimeMillis();
+                if (remaining <= 0) break;
+                frameLock.wait(remaining);
+            }
+            boolean ready = frameAvailable;
             frameAvailable = false;
+            return ready;
         }
     }
 

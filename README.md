@@ -42,3 +42,12 @@ The workflow uploads `app-debug.apk` as the `HTMLRenderStudio-debug` artifact.
 
 ## 0.2.1 build fix
 - Fixed `Presentation` import: `android.app.Presentation` (not `android.view.Presentation`).
+
+
+## 0.2.3 stability fixes
+- Added a visible live WebView preview on the main screen.
+- VirtualDisplay now uses the Presentation flag plus own-content-only.
+- Explicit hardware acceleration is kept for the Presentation window; the WebView no longer forces a separate hardware layer.
+- SurfaceTexture frame callbacks use the main looper and the renderer waits for the first producer frame.
+- EGL uses `EGL_RECORDABLE_ANDROID` for MediaCodec input surfaces.
+- Added bundled `business_growth_gpu_test.html` as the default GPU render test scene.

@@ -106,7 +106,9 @@ public final class HtmlVideoEncoder {
             long frameMs = Math.max(1, 1000L / options.fps);
             for (int i = 0; i < frames; i++) {
                 if (cancelled.get()) throw new IOException("Render dibatalkan");
-                // The WebView is rendered on a virtual display, so the source continues even when the app task is minimized.
+                // Let Chromium advance if it produced a new frame. A timeout is fine for static HTML;
+                // the previous SurfaceTexture image remains valid and is encoded again.
+                if (i > 0) source.waitForFrame(Math.max(2, frameMs * 2));
                 gl.renderExternal(webTexture, i * frameNs, options.alphaMode);
                 drainEncoder(codec, muxer, muxerState, false);
                 SystemClock.sleep(frameMs);

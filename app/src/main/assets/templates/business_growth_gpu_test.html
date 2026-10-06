@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Render Studio - Business Growth Test</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #05070d;
+    font-family: Inter, Arial, sans-serif;
+  }
+  .scene {
+    position: relative; width: 100vw; height: 100vh; overflow: hidden;
+    background:
+      radial-gradient(circle at 72% 28%, rgba(65,125,255,.22), transparent 28%),
+      radial-gradient(circle at 25% 72%, rgba(0,220,180,.14), transparent 30%),
+      linear-gradient(135deg, #05070d 0%, #0b1020 55%, #05070d 100%);
+  }
+  .glow {
+    position:absolute; width:42vw; height:42vw; border-radius:50%;
+    filter: blur(70px); opacity:.42;
+    background:#2675ff; left:58%; top:8%;
+    animation: float 6s ease-in-out infinite alternate;
+  }
+  .grid {
+    position:absolute; inset:-20%;
+    background-image:
+      linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size: 70px 70px;
+    transform: perspective(700px) rotateX(62deg) translateY(18%);
+    transform-origin:center bottom;
+    animation: gridMove 7s linear infinite;
+  }
+  .content {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:center; padding-left:10vw;
+  }
+  .eyebrow {
+    color:#72a7ff; font-size:1.2vw; letter-spacing:.28em;
+    text-transform:uppercase; font-weight:700;
+    animation: fadeUp 1s ease-out both;
+  }
+  h1 {
+    margin:.18em 0 .12em; color:white; font-size:7vw; line-height:.92;
+    letter-spacing:-.055em; max-width:70vw;
+    animation: fadeUp 1s .12s ease-out both;
+  }
+  .accent { color:#64a0ff; }
+  .sub {
+    color:rgba(255,255,255,.66); font-size:1.45vw; max-width:42vw;
+    animation: fadeUp 1s .25s ease-out both;
+  }
+  .chart {
+    position:absolute; right:9vw; bottom:13vh; width:31vw; height:25vh;
+    border-left:1px solid rgba(255,255,255,.15);
+    border-bottom:1px solid rgba(255,255,255,.15);
+    animation: fadeIn 1.3s .45s ease-out both;
+  }
+  .line {
+    position:absolute; left:2%; right:0; bottom:8%;
+    height:85%;
+    overflow:visible;
+  }
+  .line path {
+    fill:none; stroke:#6aa5ff; stroke-width:5;
+    stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:900; stroke-dashoffset:900;
+    animation: draw 2.8s .6s cubic-bezier(.2,.8,.2,1) forwards;
+    filter: drop-shadow(0 0 10px rgba(80,145,255,.7));
+  }
+  .point {
+    position:absolute; width:13px; height:13px; border-radius:50%;
+    background:#fff; box-shadow:0 0 0 5px rgba(100,160,255,.22), 0 0 22px #5598ff;
+    opacity:0; animation: pointIn .45s forwards;
+  }
+  .p1{left:7%;bottom:18%;animation-delay:1.15s}.p2{left:28%;bottom:34%;animation-delay:1.55s}
+  .p3{left:50%;bottom:45%;animation-delay:1.95s}.p4{left:71%;bottom:67%;animation-delay:2.35s}
+  .p5{left:92%;bottom:88%;animation-delay:2.7s}
+  .metric {
+    position:absolute; right:10vw; top:13vh; text-align:right;
+    animation: fadeIn 1s .8s both;
+  }
+  .metric b { color:white; font-size:3.5vw; display:block; }
+  .metric span { color:#6aa5ff; font-size:1vw; letter-spacing:.18em; text-transform:uppercase; }
+  .particles { position:absolute; inset:0; pointer-events:none; }
+  .particle {
+    position:absolute; width:4px; height:4px; border-radius:50%;
+    background:#fff; opacity:.5; animation: drift 5s ease-in-out infinite;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(35px)} to{opacity:1;transform:none} }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes draw { to{stroke-dashoffset:0} }
+  @keyframes pointIn { to{opacity:1} }
+  @keyframes float { to{transform:translate(-5vw,4vh) scale(1.12)} }
+  @keyframes gridMove { to{transform:perspective(700px) rotateX(62deg) translateY(24%)} }
+  @keyframes drift { 50%{transform:translate(18px,-28px);opacity:.9} }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+  <div class="grid"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="content">
+    <div class="eyebrow">Business Intelligence</div>
+    <h1>Scale <span class="accent">Forward.</span></h1>
+    <div class="sub">A GPU-render test scene with smooth motion, glow, depth and an animated growth chart.</div>
+  </div>
+
+  <div class="metric">
+    <b>+84.6%</b>
+    <span>Growth</span>
+  </div>
+
+  <div class="chart">
+    <svg class="line" viewBox="0 0 500 260" preserveAspectRatio="none">
+      <path d="M15 220 C75 205 95 180 145 188 C195 196 220 145 270 151 C315 158 335 105 370 112 C405 118 425 55 485 25"/>
+    </svg>
+    <i class="point p1"></i><i class="point p2"></i><i class="point p3"></i>
+    <i class="point p4"></i><i class="point p5"></i>
+  </div>
+</div>
+
+<script>
+  const box = document.getElementById('particles');
+  for (let i=0; i<45; i++) {
+    const p = document.createElement('i');
+    p.className = 'particle';
+    p.style.left = (Math.random()*100)+'%';
+    p.style.top = (Math.random()*100)+'%';
+    p.style.animationDelay = (-Math.random()*5)+'s';
+    p.style.animationDuration = (3+Math.random()*5)+'s';
+    box.appendChild(p);
+  }
+</script>
+</body>
+</html>

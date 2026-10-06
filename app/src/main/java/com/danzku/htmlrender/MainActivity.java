@@ -9,6 +9,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -25,7 +29,8 @@ import java.util.List;
 public class MainActivity extends Activity {
     private static final int REQ_HTML = 10;
     private static final int REQ_NOTIFICATION = 11;
-    private TextView sourceName, codecLabel, durationLabel, bitrateLabel, queueLabel;
+    private TextView sourceName, codecLabel, durationLabel, bitrateLabel, queueLabel, previewStatus;
+    private WebView previewWebView;
     private Spinner resolutionSpinner, fpsSpinner, codecSpinner, qualitySpinner, alphaSpinner, presetSpinner, templateSpinner;
     private final ArrayList<String> sourcePaths = new ArrayList<>();
     private final ArrayList<String> sourceNames = new ArrayList<>();
@@ -43,6 +48,9 @@ public class MainActivity extends Activity {
         durationLabel = findViewById(R.id.durationLabel);
         bitrateLabel = findViewById(R.id.bitrateLabel);
         queueLabel = findViewById(R.id.queueLabel);
+        previewStatus = findViewById(R.id.previewStatus);
+        previewWebView = findViewById(R.id.previewWebView);
+        configurePreview();
         resolutionSpinner = findViewById(R.id.resolutionSpinner);
         fpsSpinner = findViewById(R.id.fpsSpinner);
         codecSpinner = findViewById(R.id.codecSpinner);
@@ -57,7 +65,7 @@ public class MainActivity extends Activity {
         setAdapter(qualitySpinner, new String[]{"Economy", "Standard", "High", "Ultra"});
         setAdapter(alphaSpinner, new String[]{"Alpha: Opaque", "Alpha: Black Composite", "Alpha: White Composite"});
         setAdapter(presetSpinner, new String[]{"Custom", "Stock 1080p", "Cinematic 1080p", "Lightweight Mobile"});
-        setAdapter(templateSpinner, new String[]{"No template", "Business Growth", "Finance Motion", "Tech Glow"});
+        setAdapter(templateSpinner, new String[]{"No template", "GPU Test: Business Growth", "Finance Motion", "Tech Glow"});
 
         findViewById(R.id.pickButton).setOnClickListener(v -> pickHtml());
         findViewById(R.id.demoButton).setOnClickListener(v -> useDemo());
@@ -121,8 +129,37 @@ public class MainActivity extends Activity {
 
     private void useDemo() { templateSpinner.setSelection(1); useTemplate(1); }
 
+    private void configurePreview() {
+        previewWebView.setBackgroundColor(android.graphics.Color.BLACK);
+        WebSettings settings = previewWebView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        previewWebView.setWebChromeClient(new WebChromeClient());
+        previewWebView.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                previewStatus.setText("Preview aktif • WebView GPU");
+            }
+            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                previewStatus.setText("Preview renderer WebView berhenti");
+                return true;
+            }
+        });
+    }
+
+    private void loadPreview(File file) {
+        if (file == null || !file.isFile()) {
+            previewStatus.setText("Preview: file tidak tersedia");
+            return;
+        }
+        previewStatus.setText("Preview: memuat " + file.getName());
+        previewWebView.loadUrl(Uri.fromFile(file).toString());
+    }
+
     private void useTemplate(int position) {
-        String asset = position == 1 ? "templates/business_growth.html" : position == 2 ? "templates/finance.html" : "templates/tech.html";
+        String asset = position == 1 ? "templates/business_growth_gpu_test.html" : position == 2 ? "templates/finance.html" : "templates/tech.html";
         try {
             File dir = new File(getFilesDir(), "templates");
             if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("Gagal membuat folder template");
@@ -134,6 +171,7 @@ public class MainActivity extends Activity {
             sourcePaths.clear(); sourceNames.clear();
             sourcePaths.add(file.getAbsolutePath()); sourceNames.add(file.getName());
             updateQueueLabel();
+            loadPreview(file);
         } catch (Exception e) { toast("Template gagal dimuat: " + e.getMessage()); }
     }
 
@@ -170,6 +208,7 @@ public class MainActivity extends Activity {
         }
         sourcePaths.add(file.getAbsolutePath());
         sourceNames.add(queryName(uri));
+        if (sourcePaths.size() == 1) loadPreview(file);
     }
 
     private String queryName(Uri uri) {
@@ -183,6 +222,8 @@ public class MainActivity extends Activity {
         if (sourcePaths.isEmpty()) {
             queueLabel.setText("Queue: kosong");
             sourceName.setText("Belum ada HTML");
+            previewStatus.setText("Preview: belum ada HTML");
+            previewWebView.loadDataWithBaseURL(null, "<html><body style='margin:0;background:#05070d;color:#9aa;display:grid;place-items:center;height:100vh;font-family:sans-serif'><div>Belum ada HTML</div></body></html>", "text/html", "UTF-8", null);
             return;
         }
         sourceName.setText(sourceNames.get(0) + (sourceNames.size() > 1 ? " +" + (sourceNames.size() - 1) : ""));
