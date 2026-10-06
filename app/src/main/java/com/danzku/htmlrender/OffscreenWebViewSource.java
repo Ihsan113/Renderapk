@@ -2,9 +2,6 @@ package com.danzku.htmlrender;
 
 import android.app.Presentation;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.net.Uri;
@@ -26,13 +23,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * WebView source hosted on a hardware-accelerated Presentation/VirtualDisplay.
- *
- * Primary capture path for MVP 0.2.4 is a deterministic WebView->Bitmap snapshot,
- * followed by GPU texture upload into the MediaCodec input surface. The direct
- * SurfaceTexture/OES path remains available in GlVideoRenderer for a later
- * zero-copy mode, but the bitmap path is used here because it is much more
- * reliable across Android/WebView vendor implementations.
+ * GPU source: WebView compositor -> VirtualDisplay Surface -> SurfaceTexture.
+ * No Bitmap/readback is used. The SurfaceTexture is sampled by OpenGL as
+ * samplerExternalOES and drawn directly to the MediaCodec input Surface.
  */
 public final class OffscreenWebViewSource {
     private final Context context;
@@ -46,6 +39,9 @@ public final class OffscreenWebViewSource {
     private WebView webView;
     private final CountDownLatch pageReady = new CountDownLatch(1);
 
+    private final Object frameLock = new Object();
+    private long frameSequence = 0;
+
     public OffscreenWebViewSource(Context context, int width, int height,
                                   android.graphics.SurfaceTexture texture, Handler mainHandler) {
         this.context = context;
@@ -56,10 +52,31 @@ public final class OffscreenWebViewSource {
         this.mainHandler = mainHandler;
     }
 
-    /** Kept for direct SurfaceTexture mode compatibility. */
     public void attachFrameListener() {
-        if (texture == null) return;
-        texture.setOnFrameAvailableListener(t -> { }, mainHandler);
+        if (texture == null) throw new IllegalStateException("SurfaceTexture unavailable");
+        texture.setOnFrameAvailableListener(t -> {
+            synchronized (frameLock) {
+                frameSequence++;
+                frameLock.notifyAll();
+            }
+        }, mainHandler);
+    }
+
+    public long getFrameSequence() {
+        synchronized (frameLock) { return frameSequence; }
+    }
+
+    /** Wait until WebView compositor has produced a frame newer than sequence. */
+    public long awaitFrameAfter(long sequence, long timeoutMs) throws Exception {
+        long deadline = System.currentTimeMillis() + Math.max(100, timeoutMs);
+        synchronized (frameLock) {
+            while (frameSequence <= sequence) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) throw new IllegalStateException("WebView GPU frame timeout");
+                frameLock.wait(Math.min(remaining, 250));
+            }
+            return frameSequence;
+        }
     }
 
     public void start(File htmlFile) throws Exception {
@@ -70,7 +87,7 @@ public final class OffscreenWebViewSource {
                 DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
                 if (dm == null) throw new IllegalStateException("DisplayManager unavailable");
                 virtualDisplay = dm.createVirtualDisplay(
-                        "HTMLRenderStudio-" + System.currentTimeMillis(),
+                        "HTMLRenderStudio-GPU-" + System.currentTimeMillis(),
                         width, height, 160, surface,
                         DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION
                                 | DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
@@ -93,11 +110,12 @@ public final class OffscreenWebViewSource {
                 window.setAttributes(lp);
 
                 FrameLayout root = new FrameLayout(context);
-                root.setBackgroundColor(Color.BLACK);
+                root.setBackgroundColor(android.graphics.Color.BLACK);
                 root.setLayoutParams(new FrameLayout.LayoutParams(width, height));
 
                 webView = new WebView(context);
-                webView.setBackgroundColor(Color.BLACK);
+                webView.setBackgroundColor(android.graphics.Color.BLACK);
+                // NONE means use the normal hardware-accelerated WebView compositor.
                 webView.setLayerType(View.LAYER_TYPE_NONE, null);
                 if (android.os.Build.VERSION.SDK_INT >= 26) {
                     webView.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
@@ -114,6 +132,7 @@ public final class OffscreenWebViewSource {
                     settings.setAllowFileAccessFromFileURLs(true);
                     settings.setAllowUniversalAccessFromFileURLs(false);
                 }
+
                 FrameLayout.LayoutParams wlp = new FrameLayout.LayoutParams(width, height);
                 wlp.leftMargin = 0;
                 wlp.topMargin = 0;
@@ -133,7 +152,7 @@ public final class OffscreenWebViewSource {
                 String baseUrl = Uri.fromFile(new File(basePath)).toString();
                 if (!baseUrl.endsWith("/")) baseUrl += "/";
                 webView.loadDataWithBaseURL(baseUrl, readHtml(htmlFile), "text/html", "UTF-8", baseUrl);
-                webView.post(() -> layoutWebView());
+                webView.post(this::layoutWebView);
                 started.countDown();
             } catch (Throwable t) {
                 failure[0] = t;
@@ -144,8 +163,11 @@ public final class OffscreenWebViewSource {
         if (!started.await(5, TimeUnit.SECONDS)) throw new IllegalStateException("Virtual display setup timeout");
         if (failure[0] != null) throw new Exception(failure[0]);
         if (!pageReady.await(10, TimeUnit.SECONDS)) throw new IllegalStateException("WebView page load timeout");
-        // Allow CSS animation/layout and compositor state to settle before the first snapshot.
-        Thread.sleep(300);
+
+        // Do not use a sleep as the frame synchronisation mechanism. Wait for the
+        // compositor to actually submit at least one SurfaceTexture frame.
+        long before = getFrameSequence();
+        awaitFrameAfter(before, 5000);
     }
 
     private void layoutWebView() {
@@ -158,43 +180,13 @@ public final class OffscreenWebViewSource {
         webView.invalidate();
     }
 
-    /**
-     * Captures the current WebView frame into a caller-owned bitmap.
-     * WebView drawing happens on the main thread; the caller can then upload the bitmap
-     * to the GPU texture on the GL thread.
-     */
-    public void captureBitmap(Bitmap target, long timeoutMs) throws Exception {
-        if (target == null) throw new IllegalArgumentException("target == null");
-        if (target.getWidth() != width || target.getHeight() != height) {
-            throw new IllegalArgumentException("Bitmap size mismatch");
-        }
-        CountDownLatch done = new CountDownLatch(1);
-        final Throwable[] error = new Throwable[1];
-        mainHandler.post(() -> {
-            try {
-                if (webView == null) throw new IllegalStateException("WebView unavailable");
-                Canvas canvas = new Canvas(target);
-                canvas.drawColor(Color.BLACK);
-                layoutWebView();
-                webView.draw(canvas);
-            } catch (Throwable t) {
-                error[0] = t;
-            } finally {
-                done.countDown();
-            }
-        });
-        if (!done.await(Math.max(1000, timeoutMs), TimeUnit.MILLISECONDS)) {
-            throw new IllegalStateException("WebView frame capture timeout");
-        }
-        if (error[0] != null) throw new Exception(error[0]);
-    }
-
     private String readHtml(File file) throws Exception {
         byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public void stop() {
+        if (texture != null) texture.setOnFrameAvailableListener(null);
         CountDownLatch done = new CountDownLatch(1);
         mainHandler.post(() -> {
             try { if (presentation != null) presentation.dismiss(); } catch (Throwable ignored) {}

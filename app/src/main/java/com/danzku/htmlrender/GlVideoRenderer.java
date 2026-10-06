@@ -202,6 +202,11 @@ public final class GlVideoRenderer {
         checkGl("renderExternal");
     }
 
+    public String getGlRenderer() {
+        String r = GLES20.glGetString(GLES20.GL_RENDERER);
+        return r == null ? "unknown" : r;
+    }
+
     private int query(int what) {
         int[] value = new int[1];
         EGL14.eglQuerySurface(display, eglSurface, what, value, 0);

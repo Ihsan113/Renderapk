@@ -117,11 +117,13 @@ public class RenderActivity extends Activity {
                                 currentEncoder = null;
                                 currentIndex++;
                                 if (currentIndex >= sourcePaths.size()) {
-                                    showResult(resultUri);
-                                    RenderService.update(100, "Semua render selesai");
+                                    RenderService.update(100, "Render selesai • kembali ke Home");
                                     stopService(new Intent(RenderActivity.this, RenderService.class));
-                                    status.setText("Render selesai");
-                                    queueStatus.setText("Queue selesai • " + sourcePaths.size() + " file");
+                                    Toast.makeText(RenderActivity.this, "Render selesai • GPU + hardware encoder", Toast.LENGTH_SHORT).show();
+                                    Intent home = new Intent(RenderActivity.this, MainActivity.class);
+                                    home.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                    startActivity(home);
+                                    finish();
                                 } else {
                                     startNext();
                                 }
@@ -199,22 +201,6 @@ public class RenderActivity extends Activity {
         }
     }
 
-    private void showResult(Uri uri) {
-        if (uri == null) return;
-        renderPreviewWebView.setVisibility(View.GONE);
-        resultVideoView.setVisibility(View.VISIBLE);
-        resultVideoView.setVideoURI(uri);
-        resultVideoView.setOnPreparedListener(mp -> {
-            mp.setLooping(true);
-            resultVideoView.start();
-        });
-        resultHint.setText("Preview hasil render • tap untuk play/pause");
-        resultHint.setVisibility(View.VISIBLE);
-        resultVideoView.setOnClickListener(v -> {
-            if (resultVideoView.isPlaying()) resultVideoView.pause();
-            else resultVideoView.start();
-        });
-    }
 
     @Override public void onBackPressed() {
         moveTaskToBack(true);
