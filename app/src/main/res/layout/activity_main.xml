@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HTML Render Studio"
+            android:textColor="@color/text"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="GPU texture → hardware H.264 / HEVC → MP4"
+            android:textColor="@color/muted"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SOURCE / BATCH QUEUE" android:textColor="@color/accent" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:id="@+id/sourceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="demo.html" android:textColor="@color/text" android:textSize="17sp"/>
+            <TextView android:id="@+id/queueLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Queue: 1 HTML" android:textColor="@color/muted" android:textSize="13sp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+                <Button android:id="@+id/pickButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Pilih HTML" android:textAllCaps="false" android:textColor="@color/text" android:background="@drawable/bg_button_dark"/>
+                <Space android:layout_width="10dp" android:layout_height="1dp"/>
+                <Button android:id="@+id/demoButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Demo" android:textAllCaps="false" android:textColor="@color/text" android:background="@drawable/bg_button_dark"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TEMPLATE" android:textColor="@color/accent" android:textStyle="bold" android:textSize="12sp"/>
+            <Spinner android:id="@+id/templateSpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Preset output" android:textColor="@color/text" android:textSize="14sp"/>
+            <Spinner android:id="@+id/presetSpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VIDEO OUTPUT" android:textColor="@color/accent" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Resolusi" android:textColor="@color/text" android:textSize="15sp"/>
+            <Spinner android:id="@+id/resolutionSpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Frame rate" android:textColor="@color/text" android:textSize="15sp"/>
+            <Spinner android:id="@+id/fpsSpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+            <TextView android:id="@+id/durationLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Durasi: 6 detik" android:textColor="@color/text" android:textSize="15sp"/>
+            <SeekBar android:id="@+id/durationSeek" android:layout_width="match_parent" android:layout_height="44dp" android:max="29" android:progress="5" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CODEC / QUALITY" android:textColor="@color/accent" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Codec" android:textColor="@color/text" android:textSize="14sp"/>
+            <Spinner android:id="@+id/codecSpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Quality" android:textColor="@color/text" android:textSize="14sp"/>
+            <Spinner android:id="@+id/qualitySpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+            <TextView android:id="@+id/bitrateLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Bitrate: 8 Mbps (VBR)" android:textColor="@color/text" android:textSize="14sp"/>
+            <SeekBar android:id="@+id/bitrateSeek" android:layout_width="match_parent" android:layout_height="44dp" android:max="28" android:progress="6" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Alpha pipeline" android:textColor="@color/text" android:textSize="14sp"/>
+            <Spinner android:id="@+id/alphaSpinner" android:layout_width="match_parent" android:layout_height="48dp" />
+            <TextView android:id="@+id/codecLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Mengecek encoder..." android:textColor="@color/accent2" android:textSize="13sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ENGINE" android:textColor="@color/accent" android:textStyle="bold" android:textSize="12sp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="WebView hardware acceleration → reusable GL texture → MediaCodec Surface. Render bekerja pada thread terpisah dan sesi dijaga oleh foreground service." android:textColor="@color/muted" android:textSize="13sp"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/renderButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="18dp"
+            android:text="RENDER QUEUE"
+            android:textAllCaps="true"
+            android:textColor="#071114"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_button" />
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="MVP 0.2 • Batch • HW H.264/HEVC • VBR • Alpha compositing • Foreground render session" android:textColor="@color/muted" android:textSize="12sp" android:gravity="center"/>
+    </LinearLayout>
+</ScrollView>

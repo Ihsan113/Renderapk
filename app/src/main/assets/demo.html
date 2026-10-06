@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b12;font-family:Arial,sans-serif}
+.scene{position:relative;width:100vw;height:100vh;overflow:hidden;background:radial-gradient(circle at 60% 35%,#18344a 0,#0b1320 38%,#05070b 100%)}
+.grid{position:absolute;inset:0;opacity:.22;background-image:linear-gradient(rgba(120,190,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(120,190,255,.22) 1px,transparent 1px);background-size:6vw 6vw;transform:perspective(700px) rotateX(66deg) scale(1.8);transform-origin:bottom;}
+.glow{position:absolute;width:55vw;height:55vw;border-radius:50%;right:-16vw;top:-14vw;background:radial-gradient(circle,rgba(30,205,245,.32),rgba(30,205,245,0) 68%);filter:blur(22px);animation:pulse 3s ease-in-out infinite}
+.card{position:absolute;left:9vw;top:15vh;width:46vw;min-width:320px;max-width:760px;padding:32px;border-radius:28px;background:rgba(18,25,36,.74);border:1px solid rgba(255,255,255,.13);box-shadow:0 30px 100px rgba(0,0,0,.4);backdrop-filter:blur(18px);}
+.kicker{color:#57d8f3;letter-spacing:.18em;font-size:12px;font-weight:bold}
+h1{color:#fff;font-size:clamp(28px,4.6vw,70px);line-height:1.0;margin:12px 0 14px}
+p{color:#acb7c7;font-size:clamp(14px,1.55vw,22px);margin:0;max-width:85%;line-height:1.4}
+.chart{position:absolute;right:7vw;bottom:11vh;width:38vw;height:39vh;border-radius:24px;background:rgba(12,17,25,.65);border:1px solid rgba(255,255,255,.12);padding:18px;box-sizing:border-box;backdrop-filter:blur(10px);}
+.bars{display:flex;align-items:flex-end;gap:2.8vw;height:80%;padding:0 2vw}
+.bar{width:5.6vw;max-width:90px;border-radius:14px 14px 5px 5px;background:linear-gradient(#48dbef,#1974ff);box-shadow:0 12px 40px rgba(31,166,255,.25);transform-origin:bottom;animation:grow 1.2s ease-out both}
+.bar:nth-child(1){height:30%;animation-delay:.1s}.bar:nth-child(2){height:45%;animation-delay:.3s}.bar:nth-child(3){height:58%;animation-delay:.5s}.bar:nth-child(4){height:78%;animation-delay:.7s}.bar:nth-child(5){height:100%;animation-delay:.9s}
+.label{color:#95a7ba;text-align:right;font-size:12px;margin-top:4px}
+.float{position:absolute;border-radius:50%;background:rgba(120,220,255,.15);filter:blur(2px);animation:float 7s ease-in-out infinite}
+.f1{width:120px;height:120px;left:15%;top:65%;animation-delay:-2s}.f2{width:75px;height:75px;right:32%;top:15%;animation-delay:-4s}.f3{width:160px;height:160px;right:5%;bottom:5%;animation-delay:-1s}
+@keyframes grow{from{transform:scaleY(.05);opacity:.3}to{transform:scaleY(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(.92);opacity:.7}50%{transform:scale(1.08);opacity:1}}
+@keyframes float{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(30px,-26px,0)}}
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="grid"></div><div class="glow"></div>
+<div class="float f1"></div><div class="float f2"></div><div class="float f3"></div>
+<div class="card"><div class="kicker">BUSINESS GROWTH</div><h1>Turn ideas into visible growth.</h1><p>A premium HTML/CSS/JS animation rendered directly into an H.264 video pipeline.</p></div>
+<div class="chart"><div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div><div class="label">Performance ↑</div></div>
+</div>
+</body></html>
