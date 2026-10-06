@@ -6,7 +6,7 @@ import android.hardware.display.VirtualDisplay;
 import android.graphics.SurfaceTexture;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.Presentation;
+import android.app.Presentation;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;

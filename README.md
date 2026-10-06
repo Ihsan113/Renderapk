@@ -39,3 +39,6 @@ gradle --no-daemon :app:assembleDebug
 ```
 
 The workflow uploads `app-debug.apk` as the `HTMLRenderStudio-debug` artifact.
+
+## 0.2.1 build fix
+- Fixed `Presentation` import: `android.app.Presentation` (not `android.view.Presentation`).
